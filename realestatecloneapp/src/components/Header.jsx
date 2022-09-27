@@ -1,8 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { FaBootstrap } from "@react-icons/all-files/fa/FaBeer";
-
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
