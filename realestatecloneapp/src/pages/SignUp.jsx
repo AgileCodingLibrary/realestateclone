@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import { AiFillEyeInvisible, AiFillEye } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import OAuth from "../components/OAuth";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+
+import { db } from "../firebase";
+import { serverTimestamp, setDoc, doc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -11,6 +21,7 @@ export default function SignUp() {
   });
   const { name, email, password } = formData;
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const onChange = (e) => {
     setFormData((prevState) => ({
@@ -19,8 +30,36 @@ export default function SignUp() {
     }));
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const auth = getAuth();
+      const userCredentials = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredentials.user;
+
+      // Passing user's object as first param and updating it
+      await updateProfile(user, {
+        displayName: name,
+      });
+
+      //save user in the users collection
+      const userProfile = {
+        name: name,
+        email: email,
+        timeStamp: serverTimestamp(),
+      };
+      await setDoc(doc(db, "users", user.uid), userProfile);
+      toast.info("User registered successfully.");
+      //redirect to home page.
+      navigate("/");
+    } catch (error) {
+      toast.error("Failed to register new user.");
+    }
   };
 
   return (
